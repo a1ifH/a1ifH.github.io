@@ -1,0 +1,39 @@
+---
+const skills = [
+  {
+    category: 'Languages',
+    items: ['Python', 'JavaScript', 'Java', 'SQL', 'Bash', 'C'],
+  },
+  {
+    category: 'APIs & Integration',
+    items: ['REST APIs', 'Webhooks', 'OAuth / SSO', 'Postman', 'Data Connectors'],
+  },
+  {
+    category: 'Platforms',
+    items: ['Docker', 'Jira', 'Zendesk', 'Asana', 'Wireshark'],
+  },
+  {
+    category: 'Practices',
+    items: ['Incident Management', 'Root Cause Analysis', 'Escalation Management'],
+  },
+];
+---
+
+<section id="skills">
+  <div class="container">
+    <span class="section-label">Expertise</span>
+    <h2>Skills</h2>
+    <div class="skills-grid">
+      {skills.map(({ category, items }) => (
+        <div class="skill-group">
+          <span class="skill-group__label">{category}</span>
+          <ul class="skill-tags">
+            {items.map((item) => (
+              <li class="skill-tag">{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

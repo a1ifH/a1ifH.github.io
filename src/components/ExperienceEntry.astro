@@ -1,0 +1,30 @@
+---
+interface Props {
+  company: string;
+  role: string;
+  startDate: string;
+  endDate?: string;
+  location?: string;
+}
+
+const { company, role, startDate, endDate, location } = Astro.props;
+
+function formatDate(d: string) {
+  const [year, month] = d.split('-');
+  if (!month) return year;
+  return new Date(Number(year), Number(month) - 1).toLocaleDateString('en-US', {
+    month: 'short', year: 'numeric',
+  });
+}
+
+const dateRange = `${formatDate(startDate)} – ${endDate ? formatDate(endDate) : 'Present'}`;
+---
+
+<article class="entry">
+  <span class="entry__title">{company}</span>
+  <span class="entry__dates">{dateRange}</span>
+  <span class="entry__subtitle">{role}{location ? ` · ${location}` : ''}</span>
+  <div class="entry__body">
+    <slot />
+  </div>
+</article>

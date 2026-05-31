@@ -1,0 +1,151 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import ExperienceEntry from '../components/ExperienceEntry.astro';
+import EducationEntry from '../components/EducationEntry.astro';
+import Skills from '../components/Skills.astro';
+import { getCollection, render } from 'astro:content';
+import { pinnedRepos, hiddenRepos } from '../data/pinned';
+import { info } from '../data/info';
+
+// ── GitHub repos (build-time fetch) ────────────────────────────────────────
+interface GHRepo {
+  name: string;
+  description: string | null;
+  language: string | null;
+  stargazers_count: number;
+  html_url: string;
+  fork: boolean;
+  archived: boolean;
+}
+
+let repos: GHRepo[] = [];
+try {
+  const headers: HeadersInit = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  if (import.meta.env.GH_TOKEN) {
+    headers['Authorization'] = `Bearer ${import.meta.env.GH_TOKEN}`;
+  }
+
+  const res = await fetch(
+    `https://api.github.com/users/${info.github}/repos?per_page=100&type=public`,
+    { headers }
+  );
+
+  if (res.ok) {
+    const data = (await res.json()) as GHRepo[];
+    repos = data.filter((r) => !r.fork && !r.archived && !hiddenRepos.includes(r.name));
+  } else {
+    console.warn(`GitHub API returned ${res.status}`);
+  }
+} catch (e) {
+  console.warn('Could not fetch GitHub repos:', e);
+}
+
+// Pinned repos first (in pinnedRepos order), then rest sorted by stars
+const pinnedSet = new Set(pinnedRepos);
+const pinned = pinnedRepos
+  .map((name) => repos.find((r) => r.name === name))
+  .filter((r): r is GHRepo => Boolean(r));
+const rest = repos
+  .filter((r) => !pinnedSet.has(r.name))
+  .sort((a, b) => b.stargazers_count - a.stargazers_count);
+const allRepos = [...pinned, ...rest];
+
+// ── Content collections ─────────────────────────────────────────────────────
+const experienceEntries = (await getCollection('experience')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+const educationEntries = (await getCollection('education')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+// Render Markdown for each entry (Astro v5+ Content Layer API)
+const experienceRendered = await Promise.all(
+  experienceEntries.map(async (e) => {
+    const { Content } = await render(e);
+    return { data: e.data, Content };
+  })
+);
+const educationRendered = await Promise.all(
+  educationEntries.map(async (e) => {
+    const { Content } = await render(e);
+    return { data: e.data, Content };
+  })
+);
+---
+
+<Base>
+  <main>
+    <Hero />
+
+    <!-- ── Projects ── -->
+    <section id="projects">
+      <div class="container">
+        <span class="section-label">Work</span>
+        <h2>Projects</h2>
+        {allRepos.length === 0 ? (
+          <p style="color: var(--ink-muted)">
+            No repos found — check the console for API errors, or add repos to your GitHub account.
+          </p>
+        ) : (
+          <div class="projects-grid">
+            {allRepos.map((repo) => (
+              <ProjectCard
+                name={repo.name}
+                description={repo.description}
+                language={repo.language}
+                stars={repo.stargazers_count}
+                url={repo.html_url}
+                pinned={pinnedSet.has(repo.name)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- ── Experience ── -->
+    <section id="experience">
+      <div class="container">
+        <span class="section-label">Career</span>
+        <h2>Experience</h2>
+        {experienceRendered.map(({ data, Content }) => (
+          <ExperienceEntry
+            company={data.company}
+            role={data.role}
+            startDate={data.startDate}
+            endDate={data.endDate}
+            location={data.location}
+          >
+            <Content />
+          </ExperienceEntry>
+        ))}
+      </div>
+    </section>
+
+    <Skills />
+
+    <!-- ── Education ── -->
+    <section id="education">
+      <div class="container">
+        <span class="section-label">Background</span>
+        <h2>Education</h2>
+        {educationRendered.map(({ data, Content }) => (
+          <EducationEntry
+            institution={data.institution}
+            degree={data.degree}
+            field={data.field}
+            startDate={data.startDate}
+            endDate={data.endDate}
+          >
+            <Content />
+          </EducationEntry>
+        ))}
+      </div>
+    </section>
+  </main>
+</Base>

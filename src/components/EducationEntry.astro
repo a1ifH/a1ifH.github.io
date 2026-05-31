@@ -1,0 +1,31 @@
+---
+interface Props {
+  institution: string;
+  degree: string;
+  field?: string;
+  startDate: string;
+  endDate?: string;
+}
+
+const { institution, degree, field, startDate, endDate } = Astro.props;
+
+function formatDate(d: string) {
+  const [year, month] = d.split('-');
+  if (!month) return year;
+  return new Date(Number(year), Number(month) - 1).toLocaleDateString('en-US', {
+    month: 'short', year: 'numeric',
+  });
+}
+
+const dateRange = `${formatDate(startDate)} – ${endDate ? formatDate(endDate) : 'Present'}`;
+const subtitle = field ? `${degree} · ${field}` : degree;
+---
+
+<article class="entry">
+  <span class="entry__title">{institution}</span>
+  <span class="entry__dates">{dateRange}</span>
+  <span class="entry__subtitle">{subtitle}</span>
+  <div class="entry__body">
+    <slot />
+  </div>
+</article>

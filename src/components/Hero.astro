@@ -1,0 +1,29 @@
+---
+import { info } from '../data/info';
+
+const githubUrl = `https://github.com/${info.github}`;
+const linkedinUrl = `https://linkedin.com/in/${info.linkedin}`;
+---
+
+<section class="hero">
+  <div class="container">
+    <h1>{info.name}</h1>
+    <p class="hero__role">{info.role} &middot; {info.location}</p>
+    <p class="hero__bio">{info.bio}</p>
+
+    <nav class="links" aria-label="Contact and social links">
+      <a class="link-pill" href={githubUrl} target="_blank" rel="noopener noreferrer">
+        GitHub
+      </a>
+      <a class="link-pill" href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+        LinkedIn
+      </a>
+      <a class="link-pill" href={`mailto:${info.email}`}>
+        Email
+      </a>
+      <a class="link-pill link-pill--primary" href={info.resume}>
+        Résumé ↓
+      </a>
+    </nav>
+  </div>
+</section>
