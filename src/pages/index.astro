@@ -29,12 +29,10 @@ try {
   if (import.meta.env.GH_TOKEN) {
     headers['Authorization'] = `Bearer ${import.meta.env.GH_TOKEN}`;
   }
-
   const res = await fetch(
     `https://api.github.com/users/${info.github}/repos?per_page=100&type=public`,
     { headers }
   );
-
   if (res.ok) {
     const data = (await res.json()) as GHRepo[];
     repos = data.filter((r) => !r.fork && !r.archived && !hiddenRepos.includes(r.name));
@@ -45,7 +43,6 @@ try {
   console.warn('Could not fetch GitHub repos:', e);
 }
 
-// Pinned repos first (in pinnedRepos order), then rest sorted by stars
 const pinnedSet = new Set(pinnedRepos);
 const pinned = pinnedRepos
   .map((name) => repos.find((r) => r.name === name))
@@ -63,7 +60,6 @@ const educationEntries = (await getCollection('education')).sort(
   (a, b) => a.data.order - b.data.order
 );
 
-// Render Markdown for each entry (Astro v5+ Content Layer API)
 const experienceRendered = await Promise.all(
   experienceEntries.map(async (e) => {
     const { Content } = await render(e);
@@ -80,20 +76,22 @@ const educationRendered = await Promise.all(
 
 <Base>
   <main>
+
+    <!-- ── Hero: full-bleed, full-viewport, amber → dark ── -->
     <Hero />
 
-    <!-- ── Projects ── -->
-    <section id="projects">
+    <!-- ── Projects: dark scene ── -->
+    <section id="projects" class="section section--dark">
       <div class="container">
         <span class="section-label">Work</span>
-        <h2>Projects</h2>
+        <h2 data-reveal>Projects</h2>
         {allRepos.length === 0 ? (
-          <p style="color: var(--ink-muted)">
-            No repos found — check the console for API errors, or add repos to your GitHub account.
+          <p style="color: var(--dark-muted)">
+            No repos fetched — check console or add GITHUB_TOKEN to CI.
           </p>
         ) : (
           <div class="projects-grid">
-            {allRepos.map((repo) => (
+            {allRepos.map((repo, i) => (
               <ProjectCard
                 name={repo.name}
                 description={repo.description}
@@ -101,6 +99,7 @@ const educationRendered = await Promise.all(
                 stars={repo.stargazers_count}
                 url={repo.html_url}
                 pinned={pinnedSet.has(repo.name)}
+                revealDelay={i * 60}
               />
             ))}
           </div>
@@ -108,44 +107,75 @@ const educationRendered = await Promise.all(
       </div>
     </section>
 
-    <!-- ── Experience ── -->
-    <section id="experience">
+    <!-- ── Experience: cream scene ── -->
+    <section id="experience" class="section">
       <div class="container">
         <span class="section-label">Career</span>
-        <h2>Experience</h2>
-        {experienceRendered.map(({ data, Content }) => (
-          <ExperienceEntry
-            company={data.company}
-            role={data.role}
-            startDate={data.startDate}
-            endDate={data.endDate}
-            location={data.location}
-          >
-            <Content />
-          </ExperienceEntry>
+        <h2 data-reveal>Experience</h2>
+        {experienceRendered.map(({ data, Content }, i) => (
+          <div data-reveal data-delay={i * 80}>
+            <ExperienceEntry
+              company={data.company}
+              role={data.role}
+              startDate={data.startDate}
+              endDate={data.endDate}
+              location={data.location}
+            >
+              <Content />
+            </ExperienceEntry>
+          </div>
         ))}
       </div>
     </section>
 
-    <Skills />
+    <!-- ── Skills: cream scene ── -->
+    <section id="skills" class="section">
+      <div class="container">
+        <Skills />
+      </div>
+    </section>
 
-    <!-- ── Education ── -->
-    <section id="education">
+    <!-- ── Education: dark scene ── -->
+    <section id="education" class="section section--dark">
       <div class="container">
         <span class="section-label">Background</span>
-        <h2>Education</h2>
-        {educationRendered.map(({ data, Content }) => (
-          <EducationEntry
-            institution={data.institution}
-            degree={data.degree}
-            field={data.field}
-            startDate={data.startDate}
-            endDate={data.endDate}
-          >
-            <Content />
-          </EducationEntry>
+        <h2 data-reveal>Education</h2>
+        {educationRendered.map(({ data, Content }, i) => (
+          <div data-reveal data-delay={i * 80}>
+            <EducationEntry
+              institution={data.institution}
+              degree={data.degree}
+              field={data.field}
+              startDate={data.startDate}
+              endDate={data.endDate}
+            >
+              <Content />
+            </EducationEntry>
+          </div>
         ))}
       </div>
     </section>
+
   </main>
 </Base>
+
+<script>
+  // Reveal elements as they enter the viewport
+  const reveals = document.querySelectorAll('[data-reveal]');
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const el = entry.target as HTMLElement;
+          el.style.setProperty('--reveal-delay', (el.dataset.delay ?? '0') + 'ms');
+          el.classList.add('revealed');
+          observer.unobserve(el);
+        }
+      }
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+  );
+
+  reveals.forEach((el) => observer.observe(el));
+</script>

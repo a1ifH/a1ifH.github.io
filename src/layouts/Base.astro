@@ -26,18 +26,18 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? `https://${info.g
     <link rel="canonical" href={canonicalUrl} />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:title" content={title} />
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content={canonicalUrl} />
+    <meta property="og:title"       content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:locale" content="en_IE" />
+    <meta property="og:locale"      content="en_IE" />
 
-    <!-- Twitter / X card -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content={title} />
+    <!-- Twitter card -->
+    <meta name="twitter:card"        content="summary" />
+    <meta name="twitter:title"       content={title} />
     <meta name="twitter:description" content={description} />
 
-    <!-- Fraunces (display serif) + Spectral (body serif) — preconnect first -->
+    <!-- Fraunces (display serif) + Spectral (body serif) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -46,12 +46,17 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? `https://${info.g
     />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Show all content if JS is disabled -->
+    <noscript>
+      <style>[data-reveal]{opacity:1;transform:none;transition:none}</style>
+    </noscript>
   </head>
   <body>
     <slot />
     <footer class="site-footer">
       <div class="container">
-        <p>Built with <a href="https://astro.build">Astro</a> · <a href={`https://github.com/${info.github}`}>GitHub</a></p>
+        <p>Built with <a href="https://astro.build">Astro</a> &middot; <a href={`https://github.com/${info.github}`}>GitHub</a></p>
       </div>
     </footer>
   </body>

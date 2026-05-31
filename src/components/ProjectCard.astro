@@ -6,9 +6,33 @@ interface Props {
   stars: number;
   url: string;
   pinned: boolean;
+  revealDelay?: number;
 }
 
-const { name, description, language, stars, url, pinned } = Astro.props;
+const { name, description, language, stars, url, pinned, revealDelay = 0 } = Astro.props;
+
+// GitHub language colour palette → gradient pairs
+const langGrad: Record<string, string> = {
+  Python:     'linear-gradient(135deg, #3572A5 0%, #1b3d6e 100%)',
+  JavaScript: 'linear-gradient(135deg, #d4aa00 0%, #7a5e00 100%)',
+  TypeScript: 'linear-gradient(135deg, #3178c6 0%, #1a4a96 100%)',
+  Java:       'linear-gradient(135deg, #b07219 0%, #6e420a 100%)',
+  C:          'linear-gradient(135deg, #4a4a4a 0%, #1a1a1a 100%)',
+  'C++':      'linear-gradient(135deg, #c0294e 0%, #6e0f24 100%)',
+  Go:         'linear-gradient(135deg, #00ADD8 0%, #006e8a 100%)',
+  Rust:       'linear-gradient(135deg, #CE422B 0%, #7a1f0f 100%)',
+  Ruby:       'linear-gradient(135deg, #CC342D 0%, #7a1916 100%)',
+  Swift:      'linear-gradient(135deg, #F05138 0%, #8c2616 100%)',
+  Kotlin:     'linear-gradient(135deg, #7F52FF 0%, #3d1f99 100%)',
+  HTML:       'linear-gradient(135deg, #e34c26 0%, #8c2210 100%)',
+  CSS:        'linear-gradient(135deg, #563d7c 0%, #2a1840 100%)',
+  Shell:      'linear-gradient(135deg, #3a9920 0%, #1a5a0a 100%)',
+  Vue:        'linear-gradient(135deg, #41b883 0%, #1a6e45 100%)',
+};
+
+const gradient = language
+  ? (langGrad[language] ?? 'linear-gradient(135deg, #c0533a 0%, #5a1a0a 100%)')
+  : 'linear-gradient(135deg, #3a3028 0%, #111 100%)';
 ---
 
 <a
@@ -16,11 +40,16 @@ const { name, description, language, stars, url, pinned } = Astro.props;
   href={url}
   target="_blank"
   rel="noopener noreferrer"
+  data-reveal
+  data-delay={revealDelay}
 >
-  <span class="project-card__name">{name}</span>
-  {description && <span class="project-card__desc">{description}</span>}
-  <span class="project-card__meta">
-    {language && <span class="project-card__lang">{language}</span>}
-    {stars > 0 && <span class="project-card__stars">{stars}</span>}
-  </span>
+  <div class="project-card__banner" style={`background: ${gradient}`}></div>
+  <div class="project-card__body">
+    <span class="project-card__name">{name}</span>
+    {description && <span class="project-card__desc">{description}</span>}
+    <span class="project-card__meta">
+      {language && <span class="project-card__lang">{language}</span>}
+      {stars > 0  && <span class="project-card__stars">{stars}</span>}
+    </span>
+  </div>
 </a>
